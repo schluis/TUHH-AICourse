@@ -80,7 +80,7 @@ class RandomAgent(Agent):
     Random agent (Section 3)
     """
     
-    def choose_action(self, env: MonkeyBananaEnvironmentTask, verbose:str):
+    def choose_action(self, env: MonkeyBananaEnvironmentTask):
         available_actions = env.available_actions()
         action = sample(available_actions, 1)[0]
         return action
@@ -94,19 +94,19 @@ class RuleBasedAgent(Agent):
     Reflex rule-based agent (Section 4)
     """
     
-    def choose_action(self, env: MonkeyBananaFOEnvironmentTask, verbose:str):
+    def choose_action(self, env: MonkeyBananaFOEnvironmentTask):
         
         observation = env.perceive()
-        
-        # TODO: Question 11
-        
-        if observation.is_monkey_up:
-            return MonkeyBananaAction.GO_DOWN
-        else:
+
+        if observation.box_position < observation.banana_position:
+            return MonkeyBananaAction.MOVE_BOX_RIGHT
+        elif observation.box_position > observation.banana_position:
             return MonkeyBananaAction.MOVE_BOX_LEFT
-        
-
-
+        else:
+            if not observation.is_monkey_up:
+                return MonkeyBananaAction.CLIMB
+            else:
+                return MonkeyBananaAction.GRAB
 
 
 class PlanningAgent(Agent):
@@ -114,7 +114,7 @@ class PlanningAgent(Agent):
     Planning agent (Section 5)
     """
     
-    def _launch_planning(self, env: MonkeyBananaFOEnvironmentTask):
+    def _launch_planning(self, env: MonkeyBananaFOEnvironmentTask, max_search_depth: int):
         """
         Method used to launch the planning. To be used only withing choose_action
 
@@ -132,11 +132,11 @@ class PlanningAgent(Agent):
 
         """
         encountered_states = set()
-        return self._plan(env, encountered_states)
+        return self._plan(env, encountered_states, max_search_depth)
         
         
     
-    def _plan(self, env: MonkeyBananaFOEnvironmentTask, encountered_states: set):
+    def _plan(self, env: MonkeyBananaFOEnvironmentTask, encountered_states: set, max_search_depth: int):
         """
         Private method used to execute the planning recursively
 
@@ -155,10 +155,11 @@ class PlanningAgent(Agent):
             Returns the optimal action.
 
         """
+
+        if max_search_depth == 0:
+            return False, None
         
         perceived_state_representation = env.perceive().vector_representation()
-        
-        # TODO: Question 12
         
         encountered_states.add(perceived_state_representation)
         
@@ -176,26 +177,30 @@ class PlanningAgent(Agent):
             
             if victory:
                 # This action led to victory => planning is over!
+                print(action)
                 return True, action
             
             new_state = env_copy.perceive().vector_representation()
             
             encountered_states_copy = deepcopy(encountered_states)
+            encountered_states_copy.add(new_state)
+
             # Execute the search recursively from the new state
-            plan_found, _ = self._plan(env_copy, encountered_states_copy)
+            plan_found, _ = self._plan(env_copy, encountered_states_copy, max_search_depth - 1)
                 
-            if plan_found: return True, action
+            if plan_found: 
+                print(action)
+                return True, action
         
         return False, None
     
     
-    def choose_action(self, env: MonkeyBananaFOEnvironmentTask, verbose:str):
-        plan_found, action = self._launch_planning(env)
+    def choose_action(self, env: MonkeyBananaFOEnvironmentTask, max_search_depth: int):
+        plan_found, action = self._launch_planning(env, max_search_depth)
         
         if plan_found:
             return action
         else:
-            print("no plan found")
             available_actions = env.available_actions()
             action = sample(available_actions, 1)[0]
             return action

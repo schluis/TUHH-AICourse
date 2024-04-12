@@ -109,6 +109,14 @@ class MonkeyBananaEnvironmentTask:
         level_0 =    ['|'] + level_0 +    ['|']
         box_bottom = ['└'] + box_bottom + ['┘']
 
+        # stdscr.addstr(0, 0, '   ' + ''.join(box_top))
+        # stdscr.addstr(1, 0, '   ' + ''.join(level_2))
+        # stdscr.addstr(2, 0, '   ' + ''.join(level_1))
+        # stdscr.addstr(3, 0, '   ' + ''.join(level_0))
+        # stdscr.addstr(4, 0, '   ' + ''.join(box_bottom))
+        # stdscr.refresh()
+        # time.sleep(0.05)
+        
         print('\n')
         print('   ', ''.join(box_top))
         print('   ', ''.join(level_2))
