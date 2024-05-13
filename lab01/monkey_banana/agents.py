@@ -163,6 +163,8 @@ class PlanningAgent(Agent):
         
         encountered_states.add(perceived_state_representation)
         
+        if perceived_state_representation in encountered_states:
+            return False, None
         
         available_actions = env.available_actions()
         

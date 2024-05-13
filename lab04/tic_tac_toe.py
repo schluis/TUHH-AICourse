@@ -1,7 +1,6 @@
 import math
 import random
-from enum import Enum
-from typing import Set, Tuple
+from typing import Tuple
 
 from game import Player, GameState, OtherAction, Game
 
@@ -79,8 +78,8 @@ def is_goal(state: TicTacToeState):
     return _has_won(state) or all(all(x > -1 for x in row) for row in state.cells)
 
 
-def available_actions(state: TicTacToeState) -> Set[TicTacToeAction]:
-    actions = []
+def available_actions(state: TicTacToeState) -> list[TicTacToeAction]:
+    actions: list[TicTacToeAction] = []
     for i, row in enumerate(state.cells):
         for j, col in enumerate(row):
             if col < 0:
@@ -94,7 +93,7 @@ def result(state: TicTacToeState, action: TicTacToeAction) -> TicTacToeState:
     return TicTacToeState(cells, Player(1 - state.turn.value))
 
 
-def utility(state: TicTacToeState) -> int:
+def utility(state: TicTacToeState) -> float:
     if not _has_won(state):
         return 0
     if state.turn == Player.MAX:
@@ -118,6 +117,7 @@ def interactive_game():
     while not game.done:
         if game.state.turn == Player.MAX:
             action = alpha_beta_search(game.state)
+            assert action is not None 
             print("Explored nodes:", count)
         else:
             while True:
@@ -135,49 +135,70 @@ def interactive_game():
 
 
 
-def alpha_beta_search(state: TicTacToeState) -> TicTacToeAction:
+def alpha_beta_search(state: TicTacToeState) -> TicTacToeAction | None:
     # Used for counting the number of explored nodes => do not modify!
     global count
     count = 0
 
-    value, action = max_value(state, -math.inf, math.inf)
-    return action
-
-
-def max_value(
-    state: TicTacToeState, alpha: int, beta: int
-) -> Tuple[int, TicTacToeAction]:
-    # Used for counting the number of explored nodes => do not modify!
-    global count
-    count += 1
-
-    if is_goal(state):
-        # TODO: Question 6
-    
     v = -math.inf
     best_action = None
 
     for action in available_actions(state):
-        # TODO: Question 6
-    return v, best_action
+        new_v = min_value(result(state, action), -math.inf, math.inf)
+
+        if new_v >= v:
+            v = new_v
+            best_action = action
+    
+    return best_action
 
 
-def min_value(
-    state: TicTacToeState, alpha: int, beta: int
-) -> Tuple[int, TicTacToeAction]:
+def max_value(
+    state: TicTacToeState, alpha: float, beta: float
+    ) -> float:
     # Used for counting the number of explored nodes => do not modify!
     global count
     count += 1
 
     if is_goal(state):
-        # TODO: Question 6
+        return utility(state)
+    
+    v = -math.inf
+    actions = available_actions(state)
+    random.shuffle(actions)
+    for action in actions:
+        v = max(v, min_value(result(state, action), alpha, beta))
+
+        if v >= beta:
+            return v
+        
+        alpha = max(alpha, v)
+
+    return v
+
+
+def min_value(
+    state: TicTacToeState, alpha: float, beta: float
+) -> float:
+    # Used for counting the number of explored nodes => do not modify!
+    global count
+    count += 1
+
+    if is_goal(state):
+        return utility(state)
     
     v = math.inf
-    best_action = None
-    
-    for action in available_actions(state):
-        # TODO: Question 6
-    return v, best_action
+    actions = available_actions(state)
+    random.shuffle(actions)
+    for action in actions:
+        v = min(v, max_value(result(state, action), alpha, beta))
+
+        if v <= alpha:
+            return v
+
+        beta = min(beta, v)
+
+    return v
 
 
 interactive_game()

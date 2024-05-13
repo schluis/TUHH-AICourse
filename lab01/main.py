@@ -5,25 +5,6 @@ from monkey_banana.banana_environment import MonkeyBananaAction
 
 import plotly.express as px
 
-def question10():
-    # TODO: Question 10
-    return
-
-def question11():
-    # TODO: Question 11
-    return
-
-def question12():
-    # TODO: Question 12
-    return
-
-def question15():
-    # TODO: Question 15
-    return
-
-def question16():
-    # TODO: Question 16
-    return
 
 if __name__ == "__main__":
     # Question 1
@@ -115,7 +96,7 @@ if __name__ == "__main__":
 
 
     # question12()
-    if False:
+    if True:
         print("\n\nPlanning agent:\n")
         environment = MonkeyBananaFOEnvironmentTask(initial_banana_position, initial_box_position, room_size)
         

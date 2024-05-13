@@ -109,36 +109,53 @@ def optimal_game(N: int):
 
 def minimax_search(state: NimState) -> NimAction:
     max_utility = -math.inf
-    argmax = None
+
+    max_action = list(available_actions(state))[0]
     for action in available_actions(state):
-        # TODO: Question 3
-    return argmax
+        value = min_value(result(state, action))
+
+        if value > max_utility:
+            max_utility = value
+            max_action = action
+
+    return max_action
 
 
 def maximin_search(state: NimState) -> NimAction:
     min_utility = math.inf
-    argmin = None
-    
-    # TODO: Question 4
-    
-    return argmin
+
+    min_action = list(available_actions(state))[0]
+    for action in available_actions(state):
+        value = max_value(result(state, action))
+
+        if value < min_utility:
+            min_utility = value
+            min_action = action
+
+    return min_action
 
 
 def max_value(state: NimState) -> int:
     if is_goal(state):
-        # TODO: Question 3
+        return utility(state)
+
     v = -math.inf
-    # TODO: Question 3
-    return v
+    for action in available_actions(state):
+        v = max(v, min_value(result(state, action)))
+
+    return int(v)
 
 
 def min_value(state: NimState) -> int:
     if is_goal(state):
-        # TODO: Question 3
+        return utility(state)
+
     v = math.inf
-    # TODO: Question 3
-    return v
+    for action in available_actions(state):
+        v = min(v, max_value(result(state, action)))
+    
+    return int(v)
 
 
-interactive_game(N=4)
+interactive_game(N=8)
 # optimal_game(N=18)

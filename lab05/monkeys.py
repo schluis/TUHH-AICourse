@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Set, Tuple
+from typing import Set
 from copy import deepcopy
 
 from game import GameState, EnumAction, Game, solve
@@ -25,7 +25,7 @@ class MonkeysState(GameState):
         self.step = step
         self.step_limit = step_limit
 
-    def is_goal(self) -> bool:
+    def is_goal(self):
         return self.grab or self.step == self.step_limit
 
     def available_actions(self) -> Set[MonkeysAction]:
@@ -98,9 +98,12 @@ class MonkeysState(GameState):
                 new_state.monkey_up[player] = True
         return new_state
 
-    def utilities(self) -> Tuple[int]:
+    def utilities(self) -> tuple[int, int]:
         if self.grab:
-            return (1, 1)
+            if self.player_turn == 1:
+                return (2, 1)
+            else:
+                return (1, 2)
 
         return (0, 0)
 
@@ -130,7 +133,7 @@ class MonkeysGame(Game):
                 print("== The monkeys could not grab the banana in time :( ==")
 
 
-game = MonkeysGame(L=10, x1_init=0, x2_init=5, banana=3, step_limit=8)
+game = MonkeysGame(L=4, x1_init=1, x2_init=4, banana=2, step_limit=7)
 while not game.done:
     a = solve(game.state)
     print(f"Player {game.state.player_turn + 1}'s action: {a}")

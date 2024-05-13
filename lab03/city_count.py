@@ -8,6 +8,16 @@ class TouristAction(Enum):
     LEFT = 2
     RIGHT = 3
 
+    def inverse(self):
+        if self == TouristAction.UP:
+            return TouristAction.DOWN
+        elif self == TouristAction.DOWN:
+            return TouristAction.UP
+        elif self == TouristAction.LEFT:
+            return TouristAction.RIGHT
+        else:
+            return TouristAction.LEFT
+        
 
 class TouristState:
     def __init__(self, ave: int, street: str):
@@ -27,8 +37,8 @@ class TouristState:
         return self.as_tuple().__repr__()
 
 
-initial_state = TouristState(1, "A")
-# initial_state = TouristState(1, "C")
+# initial_state = TouristState(1, "A")
+initial_state = TouristState(1, "C")
 stun_states = set([TouristState(2, "A"), TouristState(2, "C"), TouristState(4, "B")])
 bad_restaurants = [
     ((2, "A"), (3, "A")),
@@ -44,6 +54,7 @@ good_restaurants += [(b, a) for (a, b) in good_restaurants]
 
 
 def available_actions(state: TouristState):
+
     return [
         x
         for x in [
@@ -83,7 +94,6 @@ def resulting_states(state, action):
 
 
 def or_search(state, path: List):
-    # print(state)
     if len(path) > 0:
         if (state.as_tuple(), path[0].as_tuple()) in good_restaurants:
             return []
@@ -93,17 +103,19 @@ def or_search(state, path: List):
     if state in path:
         return None
 
-    actions = available_actions(state)
-    # print(actions)
+    # actions = available_actions(state)
+    actions = [TouristAction.RIGHT]
     for action in actions:
-        plan = and_search(resulting_states(state, action), [state] + path)
+        print(action)
+        plan = and_search(resulting_states(state, action), [state] + path, action)
         if plan:
             return [action, plan]
     return None
 
 
-def and_search(states, path: List):
+def and_search(states, path: List, previous_action: TouristAction, previous_state: TouristState):
     plans = {}
+    print(states)
     
     for state in states:
         if len(path) > 0:
@@ -113,12 +125,27 @@ def and_search(states, path: List):
                 return None
 
         if state in path:
-            return None
+            if previous_state in stun_states:
+             
+                plan = and_search(resulting_states(state, action), [state] + path, action, state)
+                if plan:
+                    plans[state] = [action, plan]
+                                
+            else:
+                return None
 
         for action in available_actions(state):
-            plan = and_search(resulting_states(state, action), [state] + path)
-            if plan:
-                plans[state] = [action, plan]
+            if action == previous_action.inverse():
+                print(action, previous_action)
+                if state in stun_states:
+                    continue
+                else:
+                    continue
+            else:
+                # print(action)
+                plan = and_search(resulting_states(state, action), [state] + path, action, state)
+                if plan:
+                    plans[state] = [action, plan]
 
     return plans
 
@@ -147,3 +174,4 @@ def print_plan(plan, depth=0):
 
 plan = and_or_search()
 print_plan(plan)
+

@@ -126,7 +126,8 @@ def dls(start: HanoiTowerState, depth_limit: int, verbose: bool = False):
                 S.append(DLSNode(w, node, node.depth + 1))
 
 
-
-N = 5
-state = HanoiTowerState(N)
-bfs(state)
+if __name__ == "__main__":
+    N = 6
+    state = HanoiTowerState(N)
+    # bfs(state)
+    dls(state, 65, False)
