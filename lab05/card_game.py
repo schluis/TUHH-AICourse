@@ -10,6 +10,7 @@ from math import factorial
 from typing import List, Tuple
 import json
 import numpy as np
+import multiprocessing
 
 from game import EnumAction, Game, GameState
 
@@ -93,10 +94,12 @@ class CardGame(Game):
 
 
 def solve_MC(N: int, α: int, k: int, p: int):  # p is the number of shuffles to sample
-    return (
+    print(f"testing for α={α}")
+    result = (
         expected_value_va(CardAction.PLAY, N, α, k, p),
         expected_value_va(CardAction.REFUSE, N, α, k, p),
     )
+    return result
 
 
 def expected_value_va(action: CardAction, N: int, α: int, k: int, p=None):
@@ -222,7 +225,7 @@ def approximate_other_players_max(N: int, k: int):
     results_dict.update(saved_results)
 
     stored_result = results_dict.get(f"({N}, {k})")
-    if stored_result != None:
+    if stored_result is not None:
         return stored_result
 
     R = round(10 / N)
@@ -257,10 +260,14 @@ def plot_solve_MC(N, k, p):
     results_refuse = []
 
     my_range = np.linspace(1, 30)
+
+    pool = multiprocessing.Pool(multiprocessing.cpu_count())
+    results = []
     for α in my_range:
-        print(f"testing for α={α}")
-        result = solve_MC(N, α, k, p)
-        print(result)
+        results.append(pool.apply_async(solve_MC, (N, α, k, p)))
+
+    for result in results:
+        result = result.get()
         results_play.append(result[0])
         results_refuse.append(result[1])
 
@@ -284,6 +291,7 @@ def plot_average_game(N, k, p):
     results_player2 = []
 
     my_range = np.linspace(1.0, 3.0, num=10)
+
     for α in my_range:
         print(f"\ntesting for α={α}")
 
@@ -358,12 +366,12 @@ if __name__ == "__main__":
     repetitions = 100000
     verbose = False
     cheating = False
-    run_simple_game = True
+    run_simple_game = False
     run_plot_average_game = False
-    run_plot_solve_MC = False
+    run_plot_solve_MC = True
 
     N = 10
-    k = 2
+    k = 3
     α = 2.2
 
     if run_plot_average_game:
