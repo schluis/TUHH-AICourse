@@ -283,6 +283,26 @@ def plot_solve_MC(N, k, p):
     fig.show()
 
 
+def average_solve(N, k, p, α):
+    print(f"testing for α={α}")
+
+    average_utilies = [0, 0]
+
+    for _ in range(p):
+        deck = list(range(1, N + 1))
+        random.shuffle(deck)
+
+        game = CardGame(deck, k, α)
+        action1, action2 = solve(game.state)
+        game.perform_action(action1)
+        game.perform_action(action2)
+
+        average_utilies[0] += game.state.utilities()[0]
+        average_utilies[1] += game.state.utilities()[1]
+
+    return (average_utilies[0] / p, average_utilies[1] / p)
+
+
 def plot_average_game(N, k, p):
     import pandas as pd
     import plotly.express as px
@@ -290,33 +310,18 @@ def plot_average_game(N, k, p):
     results_player1 = []
     results_player2 = []
 
-    my_range = np.linspace(1.0, 3.0, num=10)
+    my_range = np.linspace(1.0, 3.0)
+
+    pool = multiprocessing.Pool(multiprocessing.cpu_count())
+    results = []
 
     for α in my_range:
-        print(f"\ntesting for α={α}")
+        results.append(pool.apply_async(average_solve, (N, k, p, α)))
 
-        average_utilies = [0, 0]
-
-        for _ in range(p):
-            deck = list(range(1, N + 1))
-            random.shuffle(deck)
-
-            game = CardGame(deck, k, α)
-            action1, action2 = solve(game.state)
-            game.perform_action(action1)
-            game.perform_action(action2)
-
-            average_utilies[0] += game.state.utilities()[0]
-            average_utilies[1] += game.state.utilities()[1]
-
-        results_player1.append(average_utilies[0] / p)
-        results_player2.append(average_utilies[1] / p)
-
-        print(
-            "Average utilities: ",
-            results_player1[-1],
-            results_player2[-1],
-        )
+    for result in results:
+        result = result.get()
+        results_player1.append(result[0])
+        results_player2.append(result[1])
 
     data = pd.DataFrame(
         {"α": my_range, "Player 1": results_player1, "Player 2": results_player2}
@@ -367,15 +372,15 @@ if __name__ == "__main__":
     verbose = False
     cheating = False
     run_simple_game = False
-    run_plot_average_game = False
-    run_plot_solve_MC = True
+    run_plot_average_game = True
+    run_plot_solve_MC = False
 
     N = 10
-    k = 3
-    α = 2.2
+    k = 2
+    α = 3
 
     if run_plot_average_game:
-        plot_average_game(N, k, 100000)
+        plot_average_game(N, k, 1000000)
 
     if run_plot_solve_MC:
         plot_solve_MC(N, k, 1000000)
